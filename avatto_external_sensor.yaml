@@ -1,0 +1,82 @@
+blueprint:
+  name: Calibrate Ambient Thermostat Temperature
+  description: Calibrate a thermostat's internal temperature according to an external temperature sensor.
+  domain: automation
+  input:
+    external_temp:
+      name: Select the external temperature sensor
+      description: This will be your external temp sensor.
+      selector:
+        entity:
+          domain:
+          - sensor
+          device_class:
+          - temperature
+          multiple: false
+    climate_name:
+      name: Thermostat entity
+      description: This will be the thermostat that will be calibrated using the external sensor.
+      selector:
+        entity:
+          domain:
+          - climate
+          multiple: false
+  source_url: https://github.com/18rrs/ha-blueprints/avatto_external_sensor.yaml
+
+alias: Calibrate Ambient Thermostat
+description: ''
+variables:
+  climate_name: !input climate_name
+  external_temperature: !input external_temp
+
+trigger:
+- platform: state
+  entity_id: !input external_temp
+  for:
+    hours: 0
+    minutes: 0
+    seconds: 15
+- platform: state
+  entity_id: !input climate_name
+  for:
+    hours: 0
+    minutes: 0
+    seconds: 15
+
+condition:
+  condition: and
+  conditions:
+  - condition: template
+    value_template: '{{ states(external_temperature) != ''unavailable'' }}'
+  - condition: template
+    value_template: '{{ states(external_temperature) != ''unknown'' }}'
+  - condition: template
+    value_template: >
+        {{ state_attr('climate.avatto_thermo', 'current_temperature') | float(0)  
+        != 
+        states('sensor.ble_3_temperature') | float(0) | round(1, 'floor') }}
+
+action:
+- variables:
+    device_calib: "number.{{ climate_name.removeprefix('climate.') }}_local_temperature_calibration"
+    external_temp: "{{ states(external_temperature) | float() }}"
+    local_temp: "{{ state_attr(climate_name, 'current_temperature') | float(0) }}"
+    actual_calib: "{{ states(device_calib) | float(0) }}"
+    target_calib: "{{ external_temp - (local_temp - actual_calib) }}"
+    target_calib_round: "{{ target_calib | round(1, 'floor') }}"
+    target_calib_trunc: "{{ [ ([target_calib_round, 9] | min), -9 ] | max }}"
+
+- alias: "Check if calibration needs change"
+  condition: template
+  value_template: "{{ actual_calib != target_calib_trunc }}"
+
+- service: mqtt.publish
+  data_template:
+    topic: zigbee2mqtt/{{  climate_name.removeprefix('climate.') }}/set/local_temperature_calibration
+    payload: >-
+      {{
+       target_calib_trunc
+      }}
+- delay: 5
+mode: single 
+max_exceeded: silent
