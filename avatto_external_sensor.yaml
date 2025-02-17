@@ -54,7 +54,7 @@ condition:
     value_template: >
         {{ state_attr('climate.avatto_thermo', 'current_temperature') | float(0)  
         != 
-        states('sensor.ble_3_temperature') | float(0) | round(1, 'floor') }}
+        states(external_temperature) | float(0) | round(1, 'floor') }}
 
 action:
 - variables:
