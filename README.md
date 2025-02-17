@@ -1,4 +1,4 @@
-# HA Calibrate Zigbee Avatto ZWT-100 Thermostat using Zigbee2MQTT
+# HA Calibrate Zigbee Avatto ZWT-100 Thermostat using Zigbee2MQTT of ZHA
 
 This blueprint uses external temperature sensor readings and updates the local calibration of selected thermostat so it shows the same temperature with the sensibility of 0.1 degrees.
 The termostat sensor must be set to Internal or Both.
