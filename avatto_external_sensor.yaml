@@ -35,13 +35,13 @@ trigger:
   for:
     hours: 0
     minutes: 0
-    seconds: 15
+    seconds: 50
 - platform: state
   entity_id: !input climate_name
   for:
     hours: 0
     minutes: 0
-    seconds: 15
+    seconds: 50
 
 condition:
   condition: and
@@ -70,13 +70,11 @@ action:
   condition: template
   value_template: "{{ actual_calib != target_calib_trunc }}"
 
-- service: mqtt.publish
-  data_template:
-    topic: zigbee2mqtt/{{  climate_name.removeprefix('climate.') }}/set/local_temperature_calibration
-    payload: >-
-      {{
-       target_calib_trunc
-      }}
+- service: number.set_value
+  target:
+    entity_id: "{{ device_calib }}"
+  data:
+    value: "{{ target_calib_trunc }}"
 - delay: 5
 mode: single 
 max_exceeded: silent
