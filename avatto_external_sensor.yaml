@@ -21,8 +21,8 @@ blueprint:
           domain:
           - climate
           multiple: false
-  source_url: https://github.com/18rrs/ha-blueprints/avatto_external_sensor.yaml
-
+  source_url: https://github.com/18rrs/ha-blueprints/blob/main/avatto_external_sensor.yaml
+  
 alias: Calibrate Ambient Thermostat
 description: ''
 variables:
